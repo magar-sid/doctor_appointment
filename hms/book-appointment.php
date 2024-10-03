@@ -54,7 +54,7 @@ if (isset($_POST['submit'])) {
 <html lang="en">
 	<head>
 		<title>User  | Book Appointment</title>
-	
+		<link href="vendor/bootstrap-datepicker/bootstrap-datepicker3.standalone.min.css" rel="stylesheet" media="screen">
 		<link href="http://fonts.googleapis.com/css?family=Lato:300,400,400italic,600,700|Raleway:300,400,500,600,700|Crete+Round:400italic" rel="stylesheet" type="text/css" />
 		<link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
 		<link rel="stylesheet" href="vendor/fontawesome/css/font-awesome.min.css">
@@ -204,91 +204,98 @@ while($row=mysqli_fetch_array($ret))
 			<input class="form-control" name="apptime" id="timepicker1" required="required">eg : 10:00 PM
 														</div>														 -->
 														<div class="form-group">
-        <label for="AppointmentDate">Date</label>
-        <input class="form-control" name="appdate" id="appdate" required="required" data-date-format="yyyy-mm-dd">
-    </div>
+    <label for="AppointmentDate">Date</label>
+    <input class="form-control" name="appdate" id="appdate" required="required" data-date-format="yyyy-mm-dd">
+</div>
 
-    <div class="form-group">
-        <label for="Appointmenttime">Time</label>
-        <select class="form-control" name="apptime" id="apptime" required="required">
-            <option value="">Select Time</option>
-            <!-- Time slots from 10:00 AM to 7:00 PM with 30-minute intervals -->
-        </select>
-    </div>
+<div class="form-group">
+    <label for="Appointmenttime">Time</label>
+    <select class="form-control" name="apptime" id="apptime" required="required">
+        <option value="">Select Time</option>
+        <!-- Time slots will be populated here -->
+    </select>
+</div>
 
-    <p id="error-message" style="color:red; display:none;">This time slot is unavailable. Please choose another.</p>
+<p id="error-message" style="color:red; display:none;">This time slot is unavailable. Please choose another.</p>
 
-    <button type="submit" name="submit" id="submitBtn" class="btn btn-o btn-primary">
-        Submit
-    </button>
+<button type="submit" name="submit" id="submitBtn" class="btn btn-o btn-primary">
+    Submit
+</button>
 
     <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <script>
-    $(document).ready(function() {
-        // Populate the time slots dropdown
-        populateTimeSlots();
+   $(document).ready(function() {
+    // Populate the time slots dropdown on page load
+    populateTimeSlots();
 
-        // Set datepicker for date input
-        $('#appdate').datepicker({
-            format: 'yyyy-mm-dd',
-            startDate: '+1d',  // Disable past dates and today
-            autoclose: true
-        });
-
-        // Check availability when date or time is changed
-        $('#appdate, #apptime').on('change', function() {
-            checkAvailability();
-        });
-
-        function checkAvailability() {
-            var appdate = $('#appdate').val();
-            var apptime = $('#apptime').val();
-
-            if (appdate && apptime) {
-                $.ajax({
-                    type: 'POST',
-                    url: 'book_appointment.php',  // Specify the current PHP file
-                    data: {
-                        checkAvailability: true,
-                        appdate: appdate,
-                        apptime: apptime
-                    },
-                    success: function(response) {
-                        if (response == 'unavailable') {
-                            $('#error-message').show();
-                            $('#submitBtn').attr('disabled', true);  // Disable submit button
-                        } else {
-                            $('#error-message').hide();
-                            $('#submitBtn').attr('disabled', false); // Enable submit button
-                        }
-                    },
-                    error: function() {
-                        console.log("Error in AJAX request.");
-                    }
-                });
-            }
-        }
-
-        // Populate time slots from 10:00 AM to 7:00 PM in 30-minute intervals
-        function populateTimeSlots() {
-            var startTime = 10 * 60;  // 10:00 AM in minutes
-            var endTime = 19 * 60;    // 7:00 PM in minutes
-            var interval = 30;        // 30 minutes interval
-            var options = '';
-
-            for (var time = startTime; time <= endTime; time += interval) {
-                var hours = Math.floor(time / 60);
-                var minutes = time % 60;
-                var ampm = hours >= 12 ? 'PM' : 'AM';
-                var formattedTime = (hours % 12 === 0 ? 12 : hours % 12) + ':' + (minutes < 10 ? '0' + minutes : minutes) + ' ' + ampm;
-                options += '<option value="' + formattedTime + '">' + formattedTime + '</option>';
-            }
-
-            $('#apptime').append(options);
-        }
+    // Set datepicker for date input
+    $('#appdate').datepicker({
+        format: 'yyyy-mm-dd',
+        startDate: '+1d',  // Disable past dates and today
+        autoclose: true
     });
+
+    // Check availability when date or time is changed
+    $('#appdate, #apptime').on('change', function() {
+        checkAvailability();
+    });
+
+    function checkAvailability() {
+        var appdate = $('#appdate').val();
+        var apptime = $('#apptime').val();
+
+        if (appdate && apptime) {
+            $.ajax({
+                type: 'POST',
+                url: 'book_appointment.php',  // Specify the current PHP file
+                data: {
+                    checkAvailability: true,
+                    appdate: appdate,
+                    apptime: apptime
+                },
+                success: function(response) {
+                    if (response == 'unavailable') {
+                        $('#error-message').show();
+                        $('#submitBtn').attr('disabled', true);  // Disable submit button
+                    } else {
+                        $('#error-message').hide();
+                        $('#submitBtn').attr('disabled', false); // Enable submit button
+                    }
+                },
+                error: function() {
+                    console.log("Error in AJAX request.");
+                }
+            });
+        }
+    }
+
+    // Populate time slots from 10:00 AM to 6:00 PM in 30-minute intervals
+    function populateTimeSlots() {
+        var startTime = 10 * 60;  // 10:00 AM in minutes
+        var endTime = 18 * 60;    // 6:00 PM in minutes
+        var interval = 30;        // 30 minutes interval
+        var options = '';
+
+        // Clear existing options
+        $('#apptime').empty();
+
+        for (var time = startTime; time <= endTime; time += interval) {
+            var hours = Math.floor(time / 60);
+            var minutes = time % 60;
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            var formattedTime = (hours % 12 === 0 ? 12 : hours % 12) + ':' + (minutes < 10 ? '0' + minutes : minutes) + ' ' + ampm;
+            
+            // Append each time slot as an option
+            options += '<option value="' + formattedTime + '">' + formattedTime + '</option>';
+        }
+
+        // Append the options to the time dropdown
+        $('#apptime').append(options);
+    }
+});
+
     </script>
 
 
@@ -366,6 +373,8 @@ while($row=mysqli_fetch_array($ret))
 		<!-- end: CLIP-TWO JAVASCRIPTS -->
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script src="vendor/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+
 
 	</body>
 </html>
